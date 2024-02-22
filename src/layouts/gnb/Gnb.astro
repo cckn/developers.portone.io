@@ -31,9 +31,14 @@ const t = lang === "ko" ? ko : en;
   import { effect } from "@preact/signals";
   import { systemVersionSignal } from "~/state/nav";
   const navMenu = document.getElementById("gnb")!;
+  const mainAnchor = navMenu.querySelector("a")!;
   effect(() => {
     const systemVersion = systemVersionSignal.value;
     navMenu.dataset.selectedSystemVersion = systemVersion;
+    mainAnchor.href = mainAnchor.href.replace(
+      /(?:\?v=v[12])?$/,
+      `?v=${systemVersion}`,
+    );
   });
 </script>
 <style is:global>

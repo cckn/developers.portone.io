@@ -1,5 +1,9 @@
 ---
 import Redir from "~/layouts/Redir.astro";
+
+export const prerender = false;
+
+const version = Astro.url.searchParams.get("v") || "v1";
 ---
 
-<Redir target="/docs/ko/readme" />
+<Redir target={version === "v2" ? "/docs/ko/readme-v2" : "/docs/ko/readme"} />

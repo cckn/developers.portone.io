@@ -2,10 +2,12 @@
 import Redir from "~/layouts/Redir.astro";
 import type { Lang } from "../../../type";
 
-export async function getStaticPaths() {
-  return ["ko", "en"].map((lang) => ({ params: { lang } }));
-}
+export const prerender = false;
+
 const lang = Astro.params.lang as Lang;
+const version = Astro.url.searchParams.get("v") || "v1";
 ---
 
-<Redir target={`/docs/${lang}/readme`} />
+<Redir
+  target={version === "v2" ? `/docs/${lang}/readme-v2` : `/docs/${lang}/readme`}
+/>
