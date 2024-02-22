@@ -1,11 +1,24 @@
+import { P, match } from "ts-pattern";
 import { useServerFallback } from "~/misc/useServerFallback";
 import { systemVersionSignal } from "~/state/nav";
 import type { SystemVersion } from "~/type";
 
-const pathMappings = {
-  "/api/rest-v1": "/api/rest-v2",
-  "/api/rest-v2": "/api/rest-v1",
-};
+const pathMappings = [
+  {
+    v1: {
+      matcher: /^\/api\/rest-v1/,
+      url: "/api/rest-v1",
+    },
+    v2: {
+      matcher: /^\/api\/rest-v2/,
+      url: "/api/rest-v2",
+    },
+  },
+  {
+    v1: "/docs/ko/readme",
+    v2: "/docs/ko/readme-v2",
+  },
+];
 
 const hiddenPaths = ["/release-notes"];
 
@@ -22,12 +35,22 @@ export function VersionSwitch({ url, className }: VersionSwitchProps) {
     <div
       style={{ transition: "margin 0.1s" }}
       onClick={() => {
-        systemVersionSignal.value = systemVersion !== "v1" ? "v1" : "v2";
+        const newVersion = systemVersion !== "v1" ? "v1" : "v2";
+        systemVersionSignal.value = newVersion;
+        const mapping = pathMappings.find((mapping) => {
+          const origin = mapping[systemVersion as "v1" | "v2"];
+          if (typeof origin === "string") return location.pathname === origin;
+          return origin.matcher.test(location.pathname);
+        });
+        if (mapping) {
+          location.href = match(mapping[newVersion])
+            .with(P.string, (url) => url)
+            .with({ url: P.string }, ({ url }) => url)
+            .exhaustive();
+          return;
+        }
         if (location.pathname.startsWith("/docs/")) return;
-        location.href =
-          Object.entries(pathMappings).find(([from]) =>
-            location.pathname.startsWith(from),
-          )?.[1] ?? "/";
+        location.href = "/";
       }}
       class={`bg-slate-1 border-slate-3 text-12px text-slate-5 p-1px border-1 flex cursor-pointer select-none overflow-hidden whitespace-pre rounded-[6px] text-center font-bold ${
         className || ""
